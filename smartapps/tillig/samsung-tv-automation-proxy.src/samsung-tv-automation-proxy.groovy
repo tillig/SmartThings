@@ -14,14 +14,14 @@
  *
  */
 definition(
-    name: "Samsung TV Automation Proxy",
-    namespace: "tillig",
-    author: "Travis Illig",
-    description: "Enables remote control of a Samsung TV via a simple REST service that can be integrated into other automation systems.",
-    category: "My Apps",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+  name: "Samsung TV Automation Proxy",
+  namespace: "tillig",
+  author: "Travis Illig",
+  description: "Enables remote control of a Samsung TV via a simple REST service that can be integrated into other automation systems.",
+  category: "My Apps",
+  iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+  iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+  iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 
 // Samsung TV supports commands:
@@ -29,9 +29,9 @@ definition(
 
 
 preferences {
-	section("TV To Control") {
-		input("television", "capability.samsungTV", required: true, title: "Select a TV")
-	}
+  section("TV To Control") {
+    input("television", "capability.samsungTV", required: true, title: "Select a TV")
+  }
 }
 
 
@@ -60,85 +60,86 @@ mappings {
 
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
-	initialize()
+  log.debug "Installed with settings: ${settings}"
+  initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
-	unsubscribe()
-	initialize()
+  log.debug "Updated with settings: ${settings}"
+  unsubscribe()
+  initialize()
 }
 
 def initialize() {
-	television.capabilities.each { cap ->
-    	log.debug "This device supports the ${cap.name} capability"
-        cap.attributes.each { attr ->
-            log.debug "-- ${cap.name} Attribute: ${attr.name}"
-        }
-        cap.commands.each { cmd ->
-            log.debug "-- ${cap.name} Command: ${cmd.name}"
-        }
-	}
+  television.capabilities.each { cap ->
+    log.debug "This device supports the ${cap.name} capability"
+    cap.attributes.each { attr ->
+      log.debug "-- ${cap.name} Attribute: ${attr.name}"
+    }
+    cap.commands.each { cmd ->
+      log.debug "-- ${cap.name} Command: ${cmd.name}"
+    }
+  }
 }
 
 def listTelevision() {
   return [
-  	name: television.displayName,
+    name: television.displayName,
     power: television.currentValue("switch"),
     volume: television.currentValue("volume"),
-    
+
     // mute is "mute" or "unmute" which is great for them but not really human friendly
     mute: television.currentValue("mute") == "unmute" ? "off" : "on",
     pictureMode: television.currentValue("pictureMode"),
-    soundMode: television.currentValue("soundMode")]
+    soundMode: television.currentValue("soundMode")
+  ]
 }
 
 def updateMute() {
-	def command = params.value
-    switch(command) {
-        case "on":
-        	log.debug "Turning mute on."
-            television.mute()
-            break
-        case "off":
-        	log.debug "Turning mute off."
-            television.unmute()
-            break
-        default:
-            httpError(400, "$value is not a valid mute setting. Use 'on' or 'off'.")
-    }
+  def command = params.value
+  switch(command) {
+    case "on":
+      log.debug "Turning mute on."
+      television.mute()
+      break
+    case "off":
+      log.debug "Turning mute off."
+      television.unmute()
+      break
+    default:
+      httpError(400, "$value is not a valid mute setting. Use 'on' or 'off'.")
+  }
 }
 
 def updatePower() {
-	def command = params.value
-    switch(command) {
-        case "on":
-        	log.debug "Turning television on."
-            television.on()
-            break
-        case "off":
-        	log.debug "Turning television off."
-            television.off()
-            break
-        default:
-            httpError(400, "$value is not a valid power setting. Use 'on' or 'off'.")
-    }
+  def command = params.value
+  switch(command) {
+    case "on":
+      log.debug "Turning television on."
+      television.on()
+      break
+    case "off":
+      log.debug "Turning television off."
+      television.off()
+      break
+    default:
+      httpError(400, "$value is not a valid power setting. Use 'on' or 'off'.")
+  }
 }
 
 def updateVolume() {
-	def value = params.value
-    try {
-    	value = value.toInteger()
-    }
-    catch (e) {
-    	httpError(400, "$value is not a valid volume setting. Use an integer between 0 and 100.")
-    }
-    
-    if (value < 0 || value > 100) {
-    	httpError(400, "$value is not a valid volume setting. Use an integer between 0 and 100.")
-    }
-    
-    log.debug "Setting volume to ${value}"
-    television.setVolume(value)
+  def value = params.value
+  try {
+    value = value.toInteger()
+  }
+  catch (e) {
+    httpError(400, "$value is not a valid volume setting. Use an integer between 0 and 100.")
+  }
+
+  if (value < 0 || value > 100) {
+    httpError(400, "$value is not a valid volume setting. Use an integer between 0 and 100.")
+  }
+
+  log.debug "Setting volume to ${value}"
+  television.setVolume(value)
 }
